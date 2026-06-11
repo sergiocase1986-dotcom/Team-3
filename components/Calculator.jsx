@@ -74,6 +74,8 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
   const [copied, setCopied] = useState(false);
+  const [inboxEmail, setInboxEmail] = useState("");
+  const [sent, setSent] = useState(false);
 
   const activeHubs = hubs.filter((h) => h.on);
   const FACTOR = { US: 1 };
@@ -357,6 +359,32 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
                   style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: copied ? C.save : "#fff", background: copied ? "#E7F2F0" : C.brand, border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}>
                   {copied ? "✓ Copied" : "Copy email + plan"}
                 </button>
+            {sent ? (
+              <div style={{ marginTop: 12, fontSize: 13, fontFamily: MONO, color: C.muted }}>
+                ✓ Plan sent to {inboxEmail}
+              </div>
+            ) : (
+              <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
+                <input
+                  type="email"
+                  value={inboxEmail}
+                  onChange={(e) => setInboxEmail(e.target.value)}
+                  placeholder="Send this plan to your inbox — you@company.com"
+                  style={{ flex: 1, fontFamily: SANS, fontSize: 14, border: "1px solid #E6E8EC", borderRadius: 8, padding: "8px 10px" }}
+                />
+                <button
+                  onClick={() => {
+                    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inboxEmail)) return;
+                    try { localStorage.setItem("sentPlan", JSON.stringify({ email: inboxEmail, at: Date.now() })); } catch (e) {}
+                    alert("Plan sent!");
+                    setSent(true);
+                  }}
+                  style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, background: "#111", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}
+                >
+                  Send →
+                </button>
+              </div>
+            )}
               </div>
               <div style={{ fontSize: 14, lineHeight: 1.6, color: "#222B3A", whiteSpace: "pre-wrap" }}>{report.followUp}</div>
             </div>
