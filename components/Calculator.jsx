@@ -34,12 +34,12 @@ const TITLES = ["Frontend", "Backend", "Full-stack", "Mobile", "UI/UX Designer",
 // The agency's delivery hubs — its own rate card (editable, white-label).
 // factor = all-in annual cost as a fraction of US base salary.
 const DEFAULT_HUBS = [
-  { key: "Poland",    flag: "🇵🇱", factor: 0.62, tz: "Afternoon overlap", on: true },
-  { key: "Romania",   flag: "🇷🇴", factor: 0.58, tz: "Afternoon overlap", on: true },
-  { key: "Ukraine",   flag: "🇺🇦", factor: 0.48, tz: "Afternoon overlap", on: true },
-  { key: "Brazil",    flag: "🇧🇷", factor: 0.45, tz: "Full US hours",     on: true },
-  { key: "Argentina", flag: "🇦🇷", factor: 0.40, tz: "Full US hours",     on: true },
-  { key: "India",     flag: "🇮🇳", factor: 0.35, tz: "Night gap",         on: true },
+  { key: "Poland",    flag: "🇵🇱", factor: 0.62, tz: "Перетин пів дня", on: true },
+  { key: "Romania",   flag: "🇷🇴", factor: 0.58, tz: "Перетин пів дня", on: true },
+  { key: "Ukraine",   flag: "🇺🇦", factor: 0.48, tz: "Перетин пів дня", on: true },
+  { key: "Brazil",    flag: "🇧🇷", factor: 0.45, tz: "Повний день США",     on: true },
+  { key: "Argentina", flag: "🇦🇷", factor: 0.40, tz: "Повний день США",     on: true },
+  { key: "India",     flag: "🇮🇳", factor: 0.35, tz: "Нічний розрив",         on: true },
 ];
 const HUB_NOTES = {
   Poland: "Senior EU talent, strong process, GDPR.",
@@ -96,7 +96,7 @@ export default function App() {
   const totalSalary = roles.reduce((s, r) => s + r.salary, 0);
 
   const hubRows = [
-    { key: "US", flag: "🇺🇸", label: `In-house US (${a.state})`, cost: allUS, tz: "their team" },
+    { key: "US", flag: "🇺🇸", label: `In-house US (${a.state})`, cost: allUS, tz: "їхня команда" },
     ...activeHubs.map((h) => ({ key: h.key, flag: h.flag, label: h.key, cost: totalSalary * h.factor, tz: h.tz })),
   ];
   const maxCost = Math.max(...hubRows.map((h) => h.cost));
@@ -118,7 +118,7 @@ export default function App() {
   };
 
   const generate = async () => {
-    if (activeHubs.length === 0) { setErr("Turn on at least one hub in Agency setup."); return; }
+    if (activeHubs.length === 0) { setErr("Turn on at least one hub in Налаштування агенції."); return; }
     setLoading(true); setErr(""); setReport(null);
     const roleData = roles.map((r) => {
       const regions = {};
@@ -126,7 +126,7 @@ export default function App() {
       return { id: r.id, label: `${r.sen} ${r.title}`, usYear1: Math.round(usCost(r.salary, a)), regions };
     });
     const hubProfiles = activeHubs.map((g) => `${g.key}: ${g.tz}; ${HUB_NOTES[g.key] || ""}`).join("\n");
-    const prompt = `You are the placement strategist of a US staffing agency. An account executive is on a call with a prospect ("${client || "the client"}", hiring in ${a.state}) and needs a placement plan. For each role you have the year-one loaded US in-house cost (computed with the client's real state tax + benefit assumptions) and the agency's all-in annual rate at each delivery hub.
+    const prompt = `You are the placement strategist of a US staffing agency. An account executive is on a call with a prospect ("${client || "the client"}", hiring in ${a.state}) and needs a placement plan. For each role you have the перший рік loaded US in-house cost (computed with the client's real state tax + benefit assumptions) and the agency's all-in annual rate at each delivery hub.
 
 Roles: ${JSON.stringify(roleData)}
 
@@ -137,7 +137,7 @@ For EACH role choose the single best location from: "US", ${activeHubs.map((h) =
 
 Also write a short follow-up note the AE can paste into an email to the client after the call: 3 calm sentences, first person plural ("we"), no hype, summarizing the gap, the recommended mix, and proposing to show 2-3 vetted candidate profiles for the first role this week.
 
-Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
+Write every string value in Ukrainian (the AE and client speak Ukrainian). Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
 {
   "headline": "one calm sentence the AE can say out loud to summarize the plan",
   "mix": [{"id": <role id>, "location": "<one allowed location>", "rationale": "under 18 words"}],
@@ -156,22 +156,22 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
       text = text.replace(/```json/g, "").replace(/```/g, "").trim();
       const parsed = JSON.parse(text);
       setReport({ ...parsed, ...buildPlan(parsed.mix || []) });
-    } catch (e) { setErr("Couldn't generate the plan. Try again in a moment."); }
+    } catch (e) { setErr("Не вдалося згенерувати план. Спробуй ще раз за мить."); }
     finally { setLoading(false); }
   };
 
   const copyFollowUp = () => {
     if (!report) return;
     const lines = [
-      `Subject: Your hiring plan — ${client || "follow-up"}`,
+      `Тема: Твій план найму — ${client || "follow-up"}`,
       "",
       report.followUp,
       "",
       "Recommended placement:",
       ...report.rows.map((r) => `· ${r.sen} ${r.title} → ${r.loc} (${usdK(r.cost)}/yr)`),
       "",
-      `In-house US total: ${usd(allUS)} / year-one`,
-      `With our plan: ${usd(report.recommended)} — saves ${usd(report.savings)} per year.`,
+      `In-house US total: ${usd(allUS)} / перший рік`,
+      `З нашим планом: ${usd(report.recommended)} — економія ${usd(report.savings)} на рік.`,
     ].join("\n");
     navigator.clipboard && navigator.clipboard.writeText(lines).then(() => {
       setCopied(true); setTimeout(() => setCopied(false), 2000);
@@ -188,15 +188,15 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
         {/* Top bar: white-label brand + agency setup */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: C.muted, textTransform: "uppercase" }}>
-            Proof-of-Value · <span style={{ color: C.brand, fontWeight: 700 }}>Your Agency</span>
+            Proof-of-Value · <span style={{ color: C.brand, fontWeight: 700 }}>Ваша агенція</span>
           </div>
           <button onClick={() => setShowSetup((v) => !v)}
             style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 1, color: showSetup ? C.ink : C.muted, background: showSetup ? C.line : "none", border: `1px solid ${C.line}`, borderRadius: 8, padding: "6px 10px", cursor: "pointer" }}>
-            ⚙ Agency setup
+            ⚙ Налаштування агенції
           </button>
         </div>
 
-        {/* Agency setup — the agency's own hubs & rates */}
+        {/* Налаштування агенції — the agency's own hubs & rates */}
         {showSetup && (
           <div style={{ ...card, padding: 20, marginBottom: 16, borderColor: C.brand }}>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 1, color: C.brand, textTransform: "uppercase", marginBottom: 4 }}>
@@ -222,45 +222,45 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
         )}
 
         <h1 style={{ fontSize: 28, lineHeight: 1.15, margin: "0 0 8px", fontWeight: 700, letterSpacing: -0.5 }}>
-          Show the client their numbers.<br />
-          <span style={{ color: C.shock }}>Close on proof, not promises.</span>
+          Покажи клієнту його цифри.<br />
+          <span style={{ color: C.shock }}>Закривай доказами, а не обіцянками.</span>
         </h1>
         <p style={{ color: C.muted, fontSize: 15, margin: "0 0 22px", maxWidth: 580 }}>
-          On the call: enter the client's roles and state, show the gap live, and walk away with an
-          AI placement plan plus a follow-up email ready to send.
+          Прямо на дзвінку: введи ролі та штат клієнта, покажи розрив наживо — і отримай
+          AI-план розміщення та готовий follow-up лист.
         </p>
 
         {/* Client card */}
         <div style={{ ...card, padding: 20, marginBottom: 16 }}>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 1, color: C.muted, textTransform: "uppercase", marginBottom: 12 }}>
-            Client on the call
+            Клієнт на дзвінку
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 12 }}>
-            <Field label="Company">
+            <Field label="Компанія">
               <TextInput value={client} onChange={setClient} placeholder="Acme Corp" />
             </Field>
-            <Field label="State">
+            <Field label="Штат">
               <select value={a.state} onChange={(e) => pickState(e.target.value)} style={selStyle}>
                 {Object.keys(STATES).map((s) => <option key={s}>{s}</option>)}
               </select>
             </Field>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginTop: 12 }}>
-            <Field label="Employer taxes"><PctInput value={a.tax} onChange={(v) => setAssume({ tax: v })} /></Field>
-            <Field label="Benefits"><PctInput value={a.benefits} onChange={(v) => setAssume({ benefits: v })} /></Field>
-            <Field label="Recruiting"><PctInput value={a.recruit} onChange={(v) => setAssume({ recruit: v })} /></Field>
-            <Field label="Equipment"><MoneyInput value={a.equipment} onChange={(v) => setAssume({ equipment: Math.max(0, Number(v) || 0) })} /></Field>
-            <Field label="Ramp (mo)"><NumInput value={a.ramp} onChange={(v) => setAssume({ ramp: Math.max(0, Number(v) || 0) })} /></Field>
+            <Field label="Податки роботодавця"><PctInput value={a.tax} onChange={(v) => setAssume({ tax: v })} /></Field>
+            <Field label="Бенефіти"><PctInput value={a.benefits} onChange={(v) => setAssume({ benefits: v })} /></Field>
+            <Field label="Рекрутинг"><PctInput value={a.recruit} onChange={(v) => setAssume({ recruit: v })} /></Field>
+            <Field label="Обладнання"><MoneyInput value={a.equipment} onChange={(v) => setAssume({ equipment: Math.max(0, Number(v) || 0) })} /></Field>
+            <Field label="Рамп (міс)"><NumInput value={a.ramp} onChange={(v) => setAssume({ ramp: Math.max(0, Number(v) || 0) })} /></Field>
           </div>
           <div style={{ fontFamily: MONO, fontSize: 11, color: C.muted, marginTop: 8 }}>
-            {a.state} pre-fills employer taxes ≈ {(a.tax * 100).toFixed(1)}% — adjust live if the client corrects you.
+            {a.state} підставляє податки роботодавця ≈ {(a.tax * 100).toFixed(1)}% — коригуй наживо, якщо клієнт уточнює.
           </div>
         </div>
 
         {/* Roles */}
         <div style={{ ...card, padding: 20, marginBottom: 16 }}>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 1, color: C.muted, textTransform: "uppercase", marginBottom: 12 }}>
-            Roles the client wants to fill
+            Ролі, які клієнт хоче закрити
           </div>
           {roles.map((r) => (
             <div key={r.id} style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr 1fr auto", gap: 10, alignItems: "center", marginBottom: 10 }}>
@@ -270,13 +270,13 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
               <button onClick={() => remove(r.id)} disabled={roles.length <= 1} title="Remove" style={{ border: "none", background: "none", color: roles.length <= 1 ? C.line : C.muted, cursor: roles.length <= 1 ? "default" : "pointer", fontSize: 18, lineHeight: 1, padding: 4 }}>×</button>
             </div>
           ))}
-          <button onClick={add} style={{ marginTop: 4, fontFamily: SANS, fontSize: 13, fontWeight: 600, color: C.ink, background: C.paper, border: `1px solid ${C.line}`, borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}>+ Add role</button>
+          <button onClick={add} style={{ marginTop: 4, fontFamily: SANS, fontSize: 13, fontWeight: 600, color: C.ink, background: C.paper, border: `1px solid ${C.line}`, borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}>+ Додати роль</button>
         </div>
 
         {/* Hub comparison — the live "show the gap" moment */}
         <div style={{ ...card, padding: 20, marginBottom: 16 }}>
           <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 1, color: C.muted, textTransform: "uppercase", marginBottom: 14 }}>
-            Share this screen · their roster across your hubs (year-one)
+            Покажи цей екран · їхній склад по твоїх хабах (перший рік)
           </div>
           {hubRows.map((h) => {
             const isUS = h.key === "US";
@@ -300,18 +300,18 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
             );
           })}
           <div style={{ fontFamily: MONO, fontSize: 11, color: C.muted, marginTop: 6 }}>
-            Hub rates are your agency's all-in prices (set in Agency setup). Cheapest ≠ best — generate the plan to get a defensible mix.
+            Ставки хабів — твої all-in ціни (задаються в налаштуваннях агенції). Найдешевше ≠ найкраще — згенеруй план і отримай обґрунтований мікс.
           </div>
         </div>
 
         {/* Baseline + generate */}
         <div style={{ ...card, padding: 20, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, flexWrap: "wrap" }}>
           <div>
-            <div style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>{client ? `${client} — all in-house (${a.state})` : `All in-house (${a.state})`}</div>
-            <div style={{ fontFamily: MONO, fontSize: 28, fontWeight: 700, color: C.shock }}>{usd(allUS)}<span style={{ fontSize: 13, color: C.muted, fontWeight: 400 }}> / year-one</span></div>
+            <div style={{ fontSize: 13, color: C.muted, fontWeight: 600 }}>{client ? `${client} — all in-house (${a.state})` : `Все ін-хаус (${a.state})`}</div>
+            <div style={{ fontFamily: MONO, fontSize: 28, fontWeight: 700, color: C.shock }}>{usd(allUS)}<span style={{ fontSize: 13, color: C.muted, fontWeight: 400 }}> / перший рік</span></div>
           </div>
           <button onClick={generate} disabled={loading} style={{ fontFamily: SANS, fontSize: 15, fontWeight: 700, color: "#fff", background: loading ? C.muted : C.ink, border: "none", borderRadius: 10, padding: "13px 22px", cursor: loading ? "default" : "pointer", whiteSpace: "nowrap" }}>
-            {loading ? "Building the plan…" : "Generate placement plan →"}
+            {loading ? "Будуємо план…" : "Згенерувати план розміщення →"}
           </button>
         </div>
 
@@ -320,7 +320,7 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
         {report && (
           <div style={{ ...card, padding: 24, marginBottom: 18, borderColor: C.save }}>
             <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 2, color: C.save, textTransform: "uppercase", marginBottom: 8 }}>
-              Placement plan {client ? `· ${client}` : ""}
+              План розміщення {client ? `· ${client}` : ""}
             </div>
             <div style={{ fontSize: 18, fontWeight: 700, lineHeight: 1.35, marginBottom: 18 }}>{report.headline}</div>
 
@@ -353,15 +353,15 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
             <div style={{ marginTop: 18, background: C.paper, borderRadius: 12, padding: 16 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8, flexWrap: "wrap", gap: 8 }}>
                 <div style={{ fontFamily: MONO, fontSize: 11, letterSpacing: 1, color: C.muted, textTransform: "uppercase" }}>
-                  Follow-up email · ready to send
+                  Follow-up лист · готовий до відправки
                 </div>
                 <button onClick={copyFollowUp}
                   style={{ fontFamily: SANS, fontSize: 13, fontWeight: 600, color: copied ? C.save : "#fff", background: copied ? "#E7F2F0" : C.brand, border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}>
-                  {copied ? "✓ Copied" : "Copy email + plan"}
+                  {copied ? "✓ Скопійовано" : "Скопіювати лист + план"}
                 </button>
             {sent ? (
               <div style={{ marginTop: 12, fontSize: 13, fontFamily: MONO, color: C.muted }}>
-                ✓ Plan sent to {inboxEmail}
+                ✓ План надіслано на {inboxEmail}
               </div>
             ) : (
               <div style={{ marginTop: 12, display: "flex", gap: 8, alignItems: "center" }}>
@@ -369,7 +369,7 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
                   type="email"
                   value={inboxEmail}
                   onChange={(e) => setInboxEmail(e.target.value)}
-                  placeholder="Send this plan to your inbox — you@company.com"
+                  placeholder="Надішли цей план собі на пошту — you@company.com"
                   style={{ flex: 1, fontFamily: SANS, fontSize: 14, border: "1px solid #E6E8EC", borderRadius: 8, padding: "8px 10px" }}
                 />
                 <button
@@ -381,7 +381,7 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
                   }}
                   style={{ fontFamily: SANS, fontSize: 14, fontWeight: 600, background: "#111", color: "#fff", border: "none", borderRadius: 8, padding: "8px 14px", cursor: "pointer" }}
                 >
-                  Send →
+                  Надіслати →
                 </button>
               </div>
             )}
@@ -392,8 +392,8 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact shape:
         )}
 
         <div style={{ fontSize: 11, color: C.muted, marginTop: 4, fontFamily: MONO, lineHeight: 1.6 }}>
-          Estimates only. State employer-tax figures are blended approximations (FICA + SUTA/FUTA + state paid-leave where applicable) and editable.
-          Hub rates are the agency's configured all-in prices. The placement recommendation is AI-generated and advisory. Not accounting or legal advice.
+          Лише оцінки. Податкові цифри штатів — усереднені наближення (FICA + SUTA/FUTA + оплачувані відпустки, де застосовно), їх можна редагувати.
+          Ставки хабів — налаштовані all-in ціни агенції. Рекомендація згенерована AI і має дорадчий характер. Це не бухгалтерська і не юридична порада.
         </div>
       </div>
     </div>
